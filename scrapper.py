@@ -63,7 +63,8 @@ def run():
     else:
         break
     
-
+  browser.close()
+  pw.stop()
 
 def main():
   run()
