@@ -21,6 +21,7 @@ def get_reviews(html):
         for item in reviews:
             review = {
               'product': html.title.text.replace('Amazon.com:Customer reviews:', '').strip(),
+              "country": item.find('span', {'data-hook': 'review-date'}).text.strip().split(date_split_word,1)[0].strip(),
               'date':  item.find('span', {'data-hook': 'review-date'}).text.strip().split(date_split_word,1)[1],
               'rating': float(item.find('i', {'data-hook': 'review-star-rating'}).text.replace('out of 5 stars', '').strip()),
               'title': item.find('a', {'data-hook': 'review-title'}).text.strip().split(title_split_word,1)[1],
@@ -52,10 +53,18 @@ def get_global_ratings(page, asin):
 def save(results, name, asin):
   df = pd.DataFrame(results)
   df.to_excel(f'{asin}-{name}.xlsx', index = False)
-  # create a excel writer object (necessary to write to different sheets in the same excel file)
+  # TO DO: create a excel writer object (necessary to write to different sheets in the same excel file)
   # with pd.ExcelWriter(f'{asin}-amazon.xlsx') as writer:
   #   df = pd.DataFrame(results)
   #   df.to_excel(writer, sheet_name=name, index=False)
+
+def save_to_csv(results, asin, name):
+   f = open(f'{asin}-{name}.csv', 'w')
+   writer = csv.writer(f)
+   writer.writerow(results)
+   f.close()
+
+   
 
 def read_products_csv():
   with open('amazon-asins.csv', 'r') as f:
@@ -68,7 +77,8 @@ def run(asin):
   browser = pw.chromium.launch()
   page = browser.new_page()
   print(f'Scrapping info for product {asin} ⏳')
-  save(get_global_ratings(page, asin),"global-rating", asin)
+  save_to_csv(reviews_list,asin, "global-rating")
+  # save(get_global_ratings(page, asin),"global-rating", asin)
   for x in range(2000):
     soup = get_html(page,f'https://www.amazon.com/product-reviews/{asin}/ref=cm_cr_arp_d_paging_btm_next_2?ie=UTF8&reviewerType=all_reviews&sortBy=recent&pageNumber={x+1}')
     get_reviews(soup)
@@ -78,7 +88,8 @@ def run(asin):
         break 
   browser.close()
   pw.stop()
-  save(reviews_list,"reviews-list", asin)
+  save_to_csv(reviews_list,asin, "reviews-list")
+  # save(reviews_list,"reviews-list", asin)
   print(f'Info for product {asin} retrieved correctly 🥳')
 
 def main():
