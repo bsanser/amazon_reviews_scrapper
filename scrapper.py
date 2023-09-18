@@ -53,16 +53,15 @@ def run():
   print(f'Total number of reviews: {total_review_count}')
   print(f'Rating distribution: {global_ratings}')
 
-  for x in range(10):
+  for x in range(2000):
     soup = get_html(page,f'https://www.amazon.com/product-reviews/{asin}/ref=cm_cr_arp_d_paging_btm_next_2?ie=UTF8&reviewerType=all_reviews&sortBy=recent&pageNumber={x+1}')
-    print(f'Getting page: {x}')
     get_reviews(soup)
     save(reviews_list)
     if not soup.find('li', {'class': 'a-disabled a-last'}):
         pass
     else:
         break
-    
+  print(f"this is the len of reviews {len(reviews_list)}")  
   browser.close()
   pw.stop()
 
