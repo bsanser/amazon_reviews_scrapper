@@ -2,9 +2,10 @@ from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 from rich import print
 import pandas as pd
+from pandas import ExcelWriter
+import csv
 
 reviews_list = []
-asin = "B0C4FT6Q1F"
 
 def get_html(page,url):
   page.goto(url)
@@ -29,7 +30,7 @@ def get_reviews(html):
     except:
         pass
 
-def get_global_ratings(page):
+def get_global_ratings(page, asin):
   try:
     global_html = get_html(page,f'https://www.amazon.com/product-reviews/{asin}?th=1')
     global_rating = {
@@ -48,15 +49,26 @@ def get_global_ratings(page):
   except:
         pass
   
-def save(results, name):
+def save(results, name, asin):
   df = pd.DataFrame(results)
   df.to_excel(f'{asin}-{name}.xlsx', index = False)
+  # create a excel writer object (necessary to write to different sheets in the same excel file)
+  # with pd.ExcelWriter(f'{asin}-amazon.xlsx') as writer:
+  #   df = pd.DataFrame(results)
+  #   df.to_excel(writer, sheet_name=name, index=False)
 
-def run():
+def read_products_csv():
+  with open('amazon-asins.csv', 'r') as f:
+   reader = csv.reader(f)
+   return [item[0] for item in reader]
+
+
+def run(asin):
   pw = sync_playwright().start()
   browser = pw.chromium.launch()
   page = browser.new_page()
-  save(get_global_ratings(page),"global-rating")
+  print(f'Scrapping info for product {asin} ⏳')
+  save(get_global_ratings(page, asin),"global-rating", asin)
   for x in range(2000):
     soup = get_html(page,f'https://www.amazon.com/product-reviews/{asin}/ref=cm_cr_arp_d_paging_btm_next_2?ie=UTF8&reviewerType=all_reviews&sortBy=recent&pageNumber={x+1}')
     get_reviews(soup)
@@ -66,12 +78,13 @@ def run():
         break 
   browser.close()
   pw.stop()
-  
-  save(reviews_list,"reviews-list")
-  print('Fin')
+  save(reviews_list,"reviews-list", asin)
+  print(f'Info for product {asin} retrieved correctly 🥳')
 
 def main():
-  run()
+  asins = read_products_csv()
+  for asin in asins:
+    run(asin)
 
 if __name__ == "__main__":
   main()
