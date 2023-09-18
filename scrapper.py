@@ -1,7 +1,6 @@
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 from rich import print
-import json
 import pandas as pd
 
 reviews_list = []
@@ -31,8 +30,8 @@ def get_reviews(html):
         pass
 
 def save(results):
-   with open (asin + '-reviews.json','w') as f:
-      json.dump(results, f)
+  df = pd.DataFrame(results)
+  df.to_excel(f'{asin}-reviews.xlsx', index = False)
 
 def run():
   pw = sync_playwright().start()
@@ -64,9 +63,8 @@ def run():
   print(f"this is the len of reviews {len(reviews_list)}")  
   browser.close()
   pw.stop()
-
-  df = pd.DataFrame(reviews_list)
-  df.to_excel(f'{asin}-reviews.xlsx', index = False)
+  
+  save(reviews_list)
   print('Fin')
 
 def main():
