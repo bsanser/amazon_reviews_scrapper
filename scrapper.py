@@ -56,7 +56,7 @@ def run():
   for x in range(2000):
     soup = get_html(page,f'https://www.amazon.com/product-reviews/{asin}/ref=cm_cr_arp_d_paging_btm_next_2?ie=UTF8&reviewerType=all_reviews&sortBy=recent&pageNumber={x+1}')
     get_reviews(soup)
-    save(reviews_list)
+    # save(reviews_list)
     if not soup.find('li', {'class': 'a-disabled a-last'}):
         pass
     else:
@@ -64,6 +64,10 @@ def run():
   print(f"this is the len of reviews {len(reviews_list)}")  
   browser.close()
   pw.stop()
+
+  df = pd.DataFrame(reviews_list)
+  df.to_excel(f'{asin}-reviews.xlsx', index = False)
+  print('Fin')
 
 def main():
   run()
