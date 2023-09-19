@@ -12,10 +12,12 @@ def get_html(page,url):
   html = BeautifulSoup(page.content(), 'html.parser')
   return html
 
+   
 def get_reviews(html):
     reviews = html.find_all('div', {'data-hook': 'review'})
     date_split_word = "on "
     title_split_word = "stars\n"
+    # TO DO: Clean the field for country. country_split_word = "Reviewed in the", "Reviewed in" 
   
     try:
         for item in reviews:
@@ -58,11 +60,11 @@ def save(results, name, asin):
   #   df = pd.DataFrame(results)
   #   df.to_excel(writer, sheet_name=name, index=False)
 
-def save_to_csv(results, asin, name):
-   f = open(f'{asin}-{name}.csv', 'w')
-   writer = csv.writer(f)
-   writer.writerow(results)
-   f.close()
+# def save_to_csv(results, asin, name):
+#    f = open(f'{asin}-{name}.csv', 'w')
+#    writer = csv.writer(f)
+#    writer.writerow(results)
+#    f.close()
 
    
 
@@ -77,7 +79,7 @@ def run(asin):
   browser = pw.chromium.launch()
   page = browser.new_page()
   print(f'Scrapping info for product {asin} ⏳')
-  save_to_csv(reviews_list,asin, "global-rating")
+  # save_to_csv(reviews_list,asin, "global-rating")
   # save(get_global_ratings(page, asin),"global-rating", asin)
   for x in range(2000):
     soup = get_html(page,f'https://www.amazon.com/product-reviews/{asin}/ref=cm_cr_arp_d_paging_btm_next_2?ie=UTF8&reviewerType=all_reviews&sortBy=recent&pageNumber={x+1}')
@@ -88,8 +90,10 @@ def run(asin):
         break 
   browser.close()
   pw.stop()
-  save_to_csv(reviews_list,asin, "reviews-list")
+  # save_to_csv(reviews_list,asin, "reviews-list")
   # save(reviews_list,"reviews-list", asin)
+  df = pd.DataFrame(reviews_list)
+  print(df.head())
   print(f'Info for product {asin} retrieved correctly 🥳')
 
 def main():
