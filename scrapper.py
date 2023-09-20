@@ -17,17 +17,17 @@ def get_reviews(html):
   date_split_word = "on "
   title_split_word = "stars\n"
   # TO DO: Clean the field for country. country_split_word = "Reviewed in the", "Reviewed in" 
-  
   try:
     for item in reviews:
       review = {
-        'product': html.title.text.replace('Amazon.com:Customer reviews:', '').strip(),
+        'product': html.title.string.replace('Amazon.com:Customer reviews:', '').strip(),
         'country': item.find('span', {'data-hook': 'review-date'}).text.strip().split(date_split_word,1)[0].strip(),
         'date':  item.find('span', {'data-hook': 'review-date'}).text.strip().split(date_split_word,1)[1],
         'rating': float(item.find('i', {'data-hook': 'review-star-rating'}).text.replace('out of 5 stars', '').strip()),
         'title': item.find('a', {'data-hook': 'review-title'}).text.strip().split(title_split_word,1)[1],
         'body': item.find('span', {'data-hook': 'review-body'}).text.strip(),
       }
+    
     reviews_list.append(review)
   except:
     pass
@@ -52,6 +52,7 @@ def get_global_ratings(page, asin):
         pass
   
 def save(results, name, asin):
+  print(len(results))
   df = pd.DataFrame(results)
   df.to_excel(f'{asin}-{name}.xlsx', index = False)
   # TO DO: create a excel writer object (necessary to write to different sheets in the same excel file)
@@ -80,6 +81,7 @@ def run(asin):
   print(f'Scrapping info for product {asin} ⏳')
   # save_to_csv(reviews_list,asin, "global-rating")
   save(get_global_ratings(page, asin),"global-rating", asin)
+
   for x in range(2000):
     soup = get_html(page,f'https://www.amazon.com/product-reviews/{asin}/ref=cm_cr_arp_d_paging_btm_next_2?ie=UTF8&reviewerType=all_reviews&sortBy=recent&pageNumber={x+1}')
     get_reviews(soup)
